@@ -78,9 +78,7 @@ class Config(metaclass=ABCMeta):
 
 
 lib_paths = {sysconfig.get_path(n) for n in ["stdlib", "purelib", "platlib"]}
-# if in a virtualenv, also exclude the real stdlib location
-venv_real_prefix = getattr(sys, "real_prefix", None)
-if venv_real_prefix:
+if venv_real_prefix := getattr(sys, "real_prefix", None):
     lib_paths.add(
         sysconfig.get_path("stdlib", vars={"installed_base": venv_real_prefix})
     )
@@ -104,18 +102,17 @@ def default_code_filter(code: CodeType) -> bool:
     filename = pathlib.Path(code.co_filename).resolve()
     # if MONKEYTYPE_TRACE_MODULES is defined, trace only specified packages or modules
     trace_modules_str = os.environ.get("MONKEYTYPE_TRACE_MODULES")
-    if trace_modules_str is not None:
-        trace_modules = trace_modules_str.split(",")
-        # try to remove lib_path to only check package and module names
-        for lib_path in LIB_PATHS:
-            try:
-                filename = filename.relative_to(lib_path)
-                break
-            except ValueError:
-                pass
-        return any(m == filename.stem or m in filename.parts for m in trace_modules)
-    else:
+    if trace_modules_str is None:
         return not any(_startswith(filename, lib_path) for lib_path in LIB_PATHS)
+    trace_modules = trace_modules_str.split(",")
+    # try to remove lib_path to only check package and module names
+    for lib_path in LIB_PATHS:
+        try:
+            filename = filename.relative_to(lib_path)
+            break
+        except ValueError:
+            pass
+    return any(m == filename.stem or m in filename.parts for m in trace_modules)
 
 
 class DefaultConfig(Config):

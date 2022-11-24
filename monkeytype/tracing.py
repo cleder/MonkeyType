@@ -51,12 +51,7 @@ class CallTrace:
         return NotImplemented
 
     def __repr__(self) -> str:
-        return "CallTrace(%s, %s, %s, %s)" % (
-            self.func,
-            self.arg_types,
-            self.return_type,
-            self.yield_type,
-        )
+        return f"CallTrace({self.func}, {self.arg_types}, {self.return_type}, {self.yield_type})"
 
     def __hash__(self) -> int:
         return hash(
@@ -214,13 +209,15 @@ class CallTracer:
         # send() from a stack frame.
         if code.co_code[frame.f_lasti] == YIELD_VALUE_OPCODE:
             return
-        arg_names = code.co_varnames[0 : code.co_argcount]
-        arg_types = {}
-        for name in arg_names:
-            if name in frame.f_locals:
-                arg_types[name] = get_type(
-                    frame.f_locals[name], max_typed_dict_size=self.max_typed_dict_size
-                )
+        arg_names = code.co_varnames[:code.co_argcount]
+        arg_types = {
+            name: get_type(
+                frame.f_locals[name], max_typed_dict_size=self.max_typed_dict_size
+            )
+            for name in arg_names
+            if name in frame.f_locals
+        }
+
         self.traces[frame] = CallTrace(func, arg_types)
 
     def handle_return(self, frame: FrameType, arg: Any) -> None:

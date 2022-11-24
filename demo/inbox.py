@@ -146,14 +146,11 @@ class Inbox:
     def summarize(self):
         counter = Counter(e.type for e in self.events)
         clauses: List[str] = []
-        likes = counter[EventType.LIKED]
-        if likes:
+        if likes := counter[EventType.LIKED]:
             clauses.append(f"{likes} new like{self._pluralize(likes)}")
-        follows = counter[EventType.FOLLOWED]
-        if follows:
+        if follows := counter[EventType.FOLLOWED]:
             clauses.append(f"{follows} new follower{self._pluralize(follows)}")
-        comments = counter[EventType.COMMENTED]
-        if comments:
+        if comments := counter[EventType.COMMENTED]:
             clauses.append(f"{comments} new comment{self._pluralize(comments)}")
         if not clauses:
             combined = "no new activity"

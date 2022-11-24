@@ -59,10 +59,6 @@ def transform_path(path: str) -> str:
 
 def smartcov_paths_hook(paths: List[str]) -> List[str]:
     """Given list of test files to run, return modules to measure coverage of."""
-    if not paths:
-        return ['monkeytype']
-    return [
-        transform_path(path)
-        for path
-        in paths
-    ]
+    return (
+        [transform_path(path) for path in paths] if paths else ['monkeytype']
+    )

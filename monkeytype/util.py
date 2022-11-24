@@ -16,7 +16,7 @@ from monkeytype.exceptions import InvalidTypeError, NameLookupError
 
 def get_func_fqname(func: Callable[..., Any]) -> str:
     """Return the fully qualified function name."""
-    return func.__module__ + "." + func.__qualname__
+    return f"{func.__module__}.{func.__qualname__}"
 
 
 def get_func_in_module(module: str, qualname: str) -> Callable[..., Any]:
@@ -31,15 +31,14 @@ def get_func_in_module(module: str, qualname: str) -> Callable[..., Any]:
     if isinstance(func, types.MethodType):
         func = func.__func__
     elif isinstance(func, property):
-        if func.fget is not None:
-            if (func.fset is None) and (func.fdel is None):
-                func = func.fget
-            else:
-                raise InvalidTypeError(
-                    f"Property {module}.{qualname} has setter or deleter."
-                )
-        else:
+        if func.fget is None:
             raise InvalidTypeError(f"Property {module}.{qualname} is missing getter")
+        if (func.fset is None) and (func.fdel is None):
+            func = func.fget
+        else:
+            raise InvalidTypeError(
+                f"Property {module}.{qualname} has setter or deleter."
+            )
     elif cached_property and isinstance(func, cached_property):
         func = func.func
     elif not isinstance(func, (types.FunctionType, types.BuiltinFunctionType)):

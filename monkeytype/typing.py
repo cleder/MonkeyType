@@ -137,7 +137,7 @@ def shrink_types(types, max_typed_dict_size):
     Otherwise, recursively turn the anonymous TypedDicts into Dicts.
     Union will handle deduplicating types (both by equality and subtype relationships)."""
     types = tuple(types)
-    if len(types) == 0:
+    if not types:
         return Any
     if all(is_anonymous_typed_dict(typ) for typ in types):
         return shrink_typed_dict_types(types, max_typed_dict_size)
@@ -193,15 +193,14 @@ def get_dict_type(dct, max_typed_dict_size):
                 k: get_type(v, max_typed_dict_size) for k, v in dct.items()
             }
         )
-    else:
-        key_type = shrink_types(
-            (get_type(k, max_typed_dict_size) for k in dct.keys()), max_typed_dict_size
-        )
-        val_type = shrink_types(
-            (get_type(v, max_typed_dict_size) for v in dct.values()),
-            max_typed_dict_size,
-        )
-        return Dict[key_type, val_type]
+    key_type = shrink_types(
+        (get_type(k, max_typed_dict_size) for k in dct.keys()), max_typed_dict_size
+    )
+    val_type = shrink_types(
+        (get_type(v, max_typed_dict_size) for v in dct.values()),
+        max_typed_dict_size,
+    )
+    return Dict[key_type, val_type]
 
 
 def get_type(obj, max_typed_dict_size):
@@ -347,7 +346,7 @@ class GenericTypeRewriter(Generic[T], ABC):
             typname = name_of_generic(typ)
         else:
             typname = getattr(typ, "__name__", None)
-        rewriter = getattr(self, "rewrite_" + typname, None) if typname else None
+        rewriter = getattr(self, f"rewrite_{typname}", None) if typname else None
         if rewriter:
             return rewriter(typ)
         if isinstance(typ, TypeVar):
@@ -402,8 +401,9 @@ class RemoveEmptyContainers(TypeRewriter):
         return args and all(is_any(e) for e in args)
 
     def rewrite_Union(self, union):
-        elems = tuple(self.rewrite(e) for e in union.__args__ if not self._is_empty(e))
-        if elems:
+        if elems := tuple(
+            self.rewrite(e) for e in union.__args__ if not self._is_empty(e)
+        ):
             return Union[elems]
         return union
 
@@ -438,7 +438,7 @@ class RewriteLargeUnion(TypeRewriter):
             if not is_generic_of(t, Tuple):
                 return None
             value_type = value_type or t.__args__[0]
-            if not all(vt is value_type for vt in t.__args__):
+            if any(vt is not value_type for vt in t.__args__):
                 return None
         return Tuple[value_type, ...]
 
@@ -468,10 +468,11 @@ class RewriteAnonymousTypedDictToDict(TypeRewriter):
         assert is_anonymous_typed_dict(typed_dict)
         required_fields, optional_fields = field_annotations(typed_dict)
         all_value_types = [*required_fields.values(), *optional_fields.values()]
-        if not all_value_types:
-            # Special-case this because we can't justify any type.
-            return Dict[Any, Any]
-        return Dict[str, Union[tuple(self.rewrite(typ) for typ in all_value_types)]]
+        return (
+            Dict[str, Union[tuple(self.rewrite(typ) for typ in all_value_types)]]
+            if all_value_types
+            else Dict[Any, Any]
+        )
 
 
 class ChainedRewriter(TypeRewriter):

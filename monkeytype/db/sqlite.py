@@ -78,18 +78,18 @@ class SQLiteStore(CallTraceStore):
         return cls(conn)
 
     def add(self, traces: Iterable[CallTrace]) -> None:
-        values = []
-        for row in serialize_traces(traces):
-            values.append(
-                (
-                    datetime.datetime.now(),
-                    row.module,
-                    row.qualname,
-                    row.arg_types,
-                    row.return_type,
-                    row.yield_type,
-                )
+        values = [
+            (
+                datetime.datetime.now(),
+                row.module,
+                row.qualname,
+                row.arg_types,
+                row.return_type,
+                row.yield_type,
             )
+            for row in serialize_traces(traces)
+        ]
+
         with self.conn:
             self.conn.executemany(
                 "INSERT INTO {table} VALUES (?, ?, ?, ?, ?, ?)".format(

@@ -117,7 +117,7 @@ def squares(n: int) -> Iterator[int]:
 
 
 async def square(n: int) -> int:
-    return n * n
+    return n**2
 
 
 async def sum_squares(n: int) -> int:

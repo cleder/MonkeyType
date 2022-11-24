@@ -60,8 +60,12 @@ last_auto_id = 0
 def make_user(**kwargs):
     global last_auto_id
     last_auto_id += 1
-    defaults = {"id": models.UserId(last_auto_id), "name": "Test User", "following": []}
-    defaults.update(kwargs)
+    defaults = {
+        "id": models.UserId(last_auto_id),
+        "name": "Test User",
+        "following": [],
+    } | kwargs
+
     return models.User(**defaults)
 
 
@@ -81,8 +85,8 @@ def make_feedentry(**kwargs):
         "id": models.FeedEntryId(last_auto_id),
         "caption": "Test FeedEntry",
         "published": now(),
-    }
-    defaults.update(kwargs)
+    } | kwargs
+
     return models.FeedEntry(**defaults)
 
 
@@ -93,24 +97,30 @@ def make_commented(**kwargs):
         "id": models.InboxEventId(last_auto_id),
         "comment_text": "Test comment",
         "published": now(),
-    }
-    defaults.update(kwargs)
+    } | kwargs
+
     return models.CommentedEvent(**defaults)
 
 
 def make_liked(**kwargs):
     global last_auto_id
     last_auto_id += 1
-    defaults = {"id": models.InboxEventId(last_auto_id), "published": now()}
-    defaults.update(kwargs)
+    defaults = {
+        "id": models.InboxEventId(last_auto_id),
+        "published": now(),
+    } | kwargs
+
     return models.LikedEvent(**defaults)
 
 
 def make_followed(**kwargs):
     global last_auto_id
     last_auto_id += 1
-    defaults = {"id": models.InboxEventId(last_auto_id), "published": now()}
-    defaults.update(kwargs)
+    defaults = {
+        "id": models.InboxEventId(last_auto_id),
+        "published": now(),
+    } | kwargs
+
     return models.FollowedEvent(**defaults)
 
 

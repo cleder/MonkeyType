@@ -61,7 +61,7 @@ class CallTraceStoreLogger(CallTraceLogger):
         self.traces: List[CallTrace] = []
 
     def log(self, trace: CallTrace) -> None:
-        if not trace.func.__module__ == "__main__":
+        if trace.func.__module__ != "__main__":
             self.traces.append(trace)
 
     def flush(self) -> None:
