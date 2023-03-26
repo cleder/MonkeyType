@@ -191,10 +191,7 @@ def test_get_diff2(store, db_file, stdout, stderr):
     assert ret == 0
 
 
-@pytest.mark.parametrize('arg, error', [
-    (func.__module__, f"No traces found for module {func.__module__}\n"),
-    (func.__module__ + ':foo', f"No traces found for specifier {func.__module__}:foo\n"),
-])
+@pytest.mark.parametrize('arg, error', [(func.__module__, f"No traces found for module {func.__module__}\n"), (f'{func.__module__}:foo', f"No traces found for specifier {func.__module__}:foo\n")])
 def test_no_traces(store, db_file, stdout, stderr, arg, error):
     with mock.patch.dict(os.environ, {DefaultConfig.DB_PATH_VAR: db_file.name}):
         ret = cli.main(['stub', arg], stdout, stderr)
@@ -338,7 +335,7 @@ def my_test_function(a, b):
 """
     with tempfile.TemporaryDirectory(prefix='monkey type') as tempdir:
         module = 'my_test_module'
-        src_path = os.path.join(tempdir, module + '.py')
+        src_path = os.path.join(tempdir, f'{module}.py')
         with open(src_path, 'w+') as f:
             f.write(src)
         with mock.patch('sys.path', sys.path + [tempdir]):

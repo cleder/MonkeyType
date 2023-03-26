@@ -38,9 +38,10 @@ TypeDict = Dict[str, Any]
 
 
 def typed_dict_to_dict(typ: type) -> TypeDict:
-    elem_types: Dict[str, Any] = {}
-    for k, v in typ.__annotations__.items():
-        elem_types[k] = type_to_dict(v)
+    elem_types: Dict[str, Any] = {
+        k: type_to_dict(v) for k, v in typ.__annotations__.items()
+    }
+
     return {
         "module": typ.__module__,
         "qualname": typ.__qualname__,
@@ -155,18 +156,14 @@ TypeEncoder = Callable[[type], str]
 
 
 def maybe_encode_type(encode: TypeEncoder, typ: Optional[type]) -> Optional[str]:
-    if typ is None:
-        return None
-    return encode(typ)
+    return None if typ is None else encode(typ)
 
 
 TypeDecoder = Callable[[str], type]
 
 
 def maybe_decode_type(decode: TypeDecoder, encoded: Optional[str]) -> Optional[type]:
-    if (encoded is None) or (encoded == "null"):
-        return None
-    return decode(encoded)
+    return None if (encoded is None) or (encoded == "null") else decode(encoded)
 
 
 CallTraceRowT = TypeVar("CallTraceRowT", bound="CallTraceRow")

@@ -216,47 +216,50 @@ class TestRenderAnnotation:
 class TestFunctionStub:
     def test_classmethod(self):
         stub = FunctionStub('test', inspect.signature(Dummy.a_class_method), FunctionKind.CLASS)
-        expected = "\n".join([
-            '@classmethod',
-            'def test%s: ...' % (render_signature(stub.signature),),
-        ])
+        expected = "\n".join(
+            ['@classmethod', f'def test{render_signature(stub.signature)}: ...']
+        )
+
         assert stub.render() == expected
 
     def test_staticmethod(self):
         stub = FunctionStub('test', inspect.signature(Dummy.a_static_method), FunctionKind.STATIC)
-        expected = "\n".join([
-            '@staticmethod',
-            'def test%s: ...' % (render_signature(stub.signature),),
-        ])
+        expected = "\n".join(
+            ['@staticmethod', f'def test{render_signature(stub.signature)}: ...']
+        )
+
         assert stub.render() == expected
 
     def test_property(self):
         stub = FunctionStub('test', inspect.signature(Dummy.a_property.fget), FunctionKind.PROPERTY)
-        expected = "\n".join([
-            '@property',
-            'def test%s: ...' % (render_signature(stub.signature),),
-        ])
+        expected = "\n".join(
+            ['@property', f'def test{render_signature(stub.signature)}: ...']
+        )
+
         assert stub.render() == expected
 
     @skipIf(cached_property is None, "install Django to run this test")
     def test_cached_property(self):
         stub = FunctionStub('test',
                             inspect.signature(Dummy.a_cached_property.func), FunctionKind.DJANGO_CACHED_PROPERTY)
-        expected = "\n".join([
-            '@cached_property',
-            'def test%s: ...' % (render_signature(stub.signature),),
-        ])
+        expected = "\n".join(
+            [
+                '@cached_property',
+                f'def test{render_signature(stub.signature)}: ...',
+            ]
+        )
+
         assert stub.render() == expected
 
     def test_simple(self):
         for kind in [FunctionKind.MODULE, FunctionKind.INSTANCE]:
             stub = FunctionStub('test', inspect.signature(simple_add), kind)
-            expected = 'def test%s: ...' % (render_signature(stub.signature),)
+            expected = f'def test{render_signature(stub.signature)}: ...'
             assert stub.render() == expected
 
     def test_with_prefix(self):
         stub = FunctionStub('test', inspect.signature(simple_add), FunctionKind.MODULE)
-        expected = '  def test%s: ...' % (render_signature(stub.signature),)
+        expected = f'  def test{render_signature(stub.signature)}: ...'
         assert stub.render(prefix='  ') == expected
 
     def test_strip_modules(self):
@@ -269,7 +272,7 @@ class TestFunctionStub:
 
     def test_async_function(self):
         stub = FunctionStub('test', inspect.signature(simple_add), FunctionKind.MODULE, is_async=True)
-        expected = 'async def test%s: ...' % (render_signature(stub.signature),)
+        expected = f'async def test{render_signature(stub.signature)}: ...'
         assert stub.render() == expected
 
     def test_optional_parameter_annotation(self):
